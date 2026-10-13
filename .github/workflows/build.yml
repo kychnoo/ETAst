@@ -1,0 +1,94 @@
+name: Build and Release 
+
+on:
+    push:
+        tags: ["v*"]
+    workflow_dispatch:
+
+permissions:
+    contents: write
+
+jobs:
+    desktop:
+        strategy:
+            fail-fast: false
+            matrix: 
+                os: [ubuntu-latest, windows-latest, macos-latest]
+        runs-on: ${{ matrix.os }}
+        steps:
+            - uses: actions/checkout@v7
+
+            - uses: xmake-io/github-action-setup-xmake@v1
+              with:
+                xmake-version: latest
+            
+            - uses: actions/cache@v6
+              if: runner.os != 'Windows'
+              with:
+                path: ~/.xmake/packages
+                key: xmake-${{ matrix.os }}-release-${{ hashFiles('xmake.lua') }}
+                restore-keys: xmake-${{ matrix.os }}-release-
+            
+            - name: Build & install
+              shell: bash
+              run: |
+                xmake f -y -m release
+                xmake -y
+                xmake install -o output
+                rm -rf output/bin
+            
+            - uses: actions/upload-artifact@v7
+              with:
+                name: ETAst-${{ github.ref_name }}-${{ matrix.os }}
+                path: output/
+
+    android:
+        strategy:
+            fail-fast: false
+            matrix:
+                arch: [arm64-v8a, armeabi-v7a]
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+
+            - uses: xmake-io/github-action-setup-xmake@v1
+              with:
+                xmake-version: latest
+            
+            - uses: actions/cache@v6
+              with:
+                path: ~/.xmake/packages
+                key: xmake-android-${{ matrix.arch }}-release-${{ hashFiles('xmake.lua') }}
+                restore-keys: xmake-android-${{ matrix.arch }}-release-
+
+            - name: Build & install
+              shell: bash
+              run: |
+                xmake f -y -m release -p android -a ${{ matrix.arch }} --ndk="$ANDROID_NDK_LATEST_HOME"
+                xmake -y
+                xmake install -o output
+                rm -rf output/bin
+            
+            - uses: actions/upload-artifact@v7
+              with:
+                name: ETAst-${{ github.ref_name }}-android-${{ matrix.arch }}
+                path: output/
+
+    release:
+        needs: [desktop, android]
+        runs-on: ubuntu-latest
+        if: startsWith(github.ref, 'refs/tags/')
+        steps:
+            - uses: actions/download-artifact@v8
+              with:
+                path: dist
+            
+            - name: Zip per platform
+              run: |
+                cd dist
+                for d in */; do zip -r "${d%/}.zip" "${d%/}"; done
+                ls -la
+
+            - uses: softprops/action-gh-release@v3
+              with:
+                files: dist/*.zip
