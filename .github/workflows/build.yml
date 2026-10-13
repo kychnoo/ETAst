@@ -33,7 +33,7 @@ jobs:
               shell: bash
               run: |
                 if [ "$RUNNER_OS" = "Windows" ]; then
-                  xmake -f -y -m release -p windows -a x64
+                  xmake f -y -m release -p windows -a x64
                 else
                   xmake f -y -m release
                 fi
