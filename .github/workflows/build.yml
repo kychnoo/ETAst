@@ -32,7 +32,11 @@ jobs:
             - name: Build & install
               shell: bash
               run: |
-                xmake f -y -m release
+                if [ "$RUNNER_OS" = "Windows" ]; then
+                  xmake -f -y -m release -p windows -a x64
+                else
+                  xmake f -y -m release
+                fi
                 xmake -y
                 xmake install -o output
                 rm -rf output/bin
