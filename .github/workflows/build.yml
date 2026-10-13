@@ -28,15 +28,21 @@ jobs:
                 path: ~/.xmake/packages
                 key: xmake-${{ matrix.os }}-release-${{ hashFiles('xmake.lua') }}
                 restore-keys: xmake-${{ matrix.os }}-release-
+
+            - name: Build & install (Windows)
+              if: runner.os == 'Windows'
+              shell: pwsh
+              run: |
+                xmake f -y -m release -p windows -a x64
+                xmake -y
+                xmake install -o output
+                if (Test-Path output/bin) { Remove-Item -Recurse -Force output/bin }
             
-            - name: Build & install
+            - name: Build & install (Linux/macOS)
+              if: runner.os != 'Windows'
               shell: bash
               run: |
-                if [ "$RUNNER_OS" = "Windows" ]; then
-                  xmake f -y -m release -p windows -a x64
-                else
-                  xmake f -y -m release
-                fi
+                xmake f -y -m release
                 xmake -y
                 xmake install -o output
                 rm -rf output/bin
