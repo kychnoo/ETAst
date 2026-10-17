@@ -18,6 +18,7 @@ target("ETAst")
 
 target("etast_demo")
     set_kind("binary")
+    set_languages("c++20")
     add_files("src/main.cpp")
     add_deps("ETAst")
 

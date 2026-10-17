@@ -1,6 +1,8 @@
 #include "ETAst/Signer.h"
 #include "openssl_utils.h"
 
+#include <format>
+
 namespace ETAst {
 	SignatureResult Signer::signNonce(const std::vector<unsigned char>& privateKey, const std::string& nonce) {
 		// Create a new EVP_PKEY object from the raw private key.
@@ -41,5 +43,16 @@ namespace ETAst {
 		// Resize the signature vector to the actual size of the signature and return it.
 		signature.resize(sigLen);
 		return { 0, "Signature generated successfully", std::move(signature) };
+	}
+
+	SignatureResult Signer::signDeleteSessionMessage(const std::vector<unsigned char>& privateKey,const std::string& sessionId, const std::string& nonce) {
+		// Concatenate the session ID and nonce to create the message to be signed.
+		const std::string messageToSign = std::format("delete-session:{}:{}", sessionId, nonce);
+		// Retrieve the private key from a secure source (e.g., environment variable, secure storage).
+		if (privateKey.empty()) {
+			return { -1, "Failed to retrieve private key" };
+		}
+		// Sign the concatenated message using the signNonce method.
+		return signNonce(privateKey, messageToSign);
 	}
 }

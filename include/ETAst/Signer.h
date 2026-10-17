@@ -15,5 +15,6 @@ namespace ETAst {
 	{
 	public:
 		static SignatureResult signNonce(const std::vector<unsigned char>& privateKey, const std::string& nonce);
+		static SignatureResult signDeleteSessionMessage(const std::vector<unsigned char>& privateKey, const std::string& sessionId, const std::string& nonce);
 	};
 }
