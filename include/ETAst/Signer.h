@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <string_view>
 
 #include "KeyPair.h"
 
@@ -14,7 +15,9 @@ namespace ETAst {
 	class Signer
 	{
 	public:
-		static SignatureResult signNonce(const std::vector<unsigned char>& privateKey, const std::string& nonce);
-		static SignatureResult signDeleteSessionMessage(const std::vector<unsigned char>& privateKey, const std::string& sessionId, const std::string& nonce);
+		static SignatureResult signMessage(const std::vector<unsigned char>& privateKey, const std::string& message);
+
+		static std::string deleteSessionMessage(const std::string_view sessionId, const std::string_view nonce);
+		static std::string refreshSessionMessage(const std::string_view nonce);
 	};
 }

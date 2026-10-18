@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
 		privateKey = generatedKeys.keys.privateKey;
 	}
 
-	SignatureResult signedNonce = Signer::signDeleteSessionMessage(privateKey, sessionId, nonce);
+	SignatureResult signedNonce = Signer::signMessage(privateKey, Signer::deleteSessionMessage(sessionId, nonce));
 	if (signedNonce.code != 0) {
 		std::cerr << "Error signing nonce: " << signedNonce.message << std::endl;
 		return signedNonce.code;
